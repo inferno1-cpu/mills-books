@@ -1,0 +1,845 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mills Books</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,500&family=Cormorant+Garamond:wght@500;600&family=Special+Elite&family=Bitter:wght@400;600&display=swap" rel="stylesheet">
+<!-- Google AdSense: replace ca-pub-XXXXXXXXXXXXXXXX with your own publisher ID -->
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-XXXXXXXXXXXXXXXX" crossorigin="anonymous"></script>
+<style>
+  :root{
+    --ink:#1B211D;
+    --ink-soft:#232A25;
+    --ink-line: rgba(255,255,255,0.10);
+    --cloth:#33473A;
+    --cloth-deep:#24332A;
+    --parchment:#EDE6D3;
+    --parchment-deep:#E2D8BD;
+    --gold:#B58A4A;
+    --gold-soft:#C9A26B;
+    --rust:#8B3E33;
+    --cream:#F3EFE4;
+    --ash:#9AA098;
+    --ash-dim:#6E746C;
+    --ui: "Inter", sans-serif;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--ink);
+    color:var(--cream);
+    font-family:var(--ui);
+    min-height:100vh;
+    display:flex;
+    flex-direction:column;
+  }
+  @media (prefers-reduced-motion: reduce){
+    *{transition:none !important; animation:none !important;}
+  }
+  button, input, select, textarea{
+    font-family:var(--ui);
+  }
+  ::selection{background:var(--gold-soft); color:var(--ink);}
+
+  /* ---------- top bar ---------- */
+  .topbar{
+    display:flex;
+    align-items:baseline;
+    justify-content:space-between;
+    padding:22px 28px 16px;
+    border-bottom:1px solid var(--ink-line);
+    flex-shrink:0;
+  }
+  .wordmark{display:flex; align-items:baseline; gap:12px; flex-wrap:wrap;}
+  .word-main{
+    font-family:"Fraunces", serif;
+    font-style:italic;
+    font-weight:500;
+    font-size:26px;
+    letter-spacing:0.2px;
+    color:var(--cream);
+  }
+  .word-tag{
+    font-size:12.5px;
+    color:var(--ash);
+    font-weight:400;
+  }
+  .status{
+    font-size:12px;
+    color:var(--ash-dim);
+    min-width:70px;
+    text-align:right;
+  }
+
+  /* ---------- app layout ---------- */
+  .app{
+    display:flex;
+    flex:1;
+    min-height:0;
+  }
+  .sidebar{
+    width:280px;
+    flex-shrink:0;
+    background:var(--ink-soft);
+    border-right:1px solid var(--ink-line);
+    padding:22px 22px 40px;
+    overflow-y:auto;
+  }
+  .stage{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    min-width:0;
+  }
+
+  /* ---------- tabs ---------- */
+  .tabs{
+    display:flex;
+    align-items:center;
+    gap:2px;
+    padding:14px 20px 0;
+    overflow-x:auto;
+    flex-shrink:0;
+  }
+  .tab{
+    position:relative;
+    padding:9px 16px;
+    font-size:13px;
+    color:var(--ash);
+    background:transparent;
+    border:1px solid transparent;
+    border-bottom:none;
+    border-radius:6px 6px 0 0;
+    cursor:pointer;
+    white-space:nowrap;
+    display:flex;
+    align-items:center;
+    gap:8px;
+  }
+  .tab:hover{color:var(--cream);}
+  .tab.active{
+    color:var(--cream);
+    background:var(--cloth-deep);
+    border-color:var(--ink-line);
+  }
+  .tab .tab-x{
+    opacity:0;
+    font-size:14px;
+    line-height:1;
+    color:var(--ash);
+    padding:2px;
+    border-radius:3px;
+  }
+  .tab:hover .tab-x{opacity:0.7;}
+  .tab .tab-x:hover{opacity:1; color:var(--rust);}
+  .tab-add{
+    padding:9px 14px;
+    font-size:16px;
+    line-height:1;
+    color:var(--ash);
+    background:transparent;
+    border:none;
+    cursor:pointer;
+    border-radius:6px;
+  }
+  .tab-add:hover{color:var(--gold-soft); background:var(--ink-line);}
+
+  /* ---------- canvas area ---------- */
+  .canvas-wrap{
+    flex:1;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:28px;
+    min-height:0;
+    background:var(--cloth-deep);
+    border-top:1px solid var(--ink-line);
+  }
+  #canvas{
+    max-width:100%;
+    max-height:100%;
+    width:auto;
+    height:100%;
+    box-shadow: 0 18px 44px rgba(0,0,0,0.45);
+  }
+
+  .stage-actions{
+    display:flex;
+    gap:10px;
+    padding:14px 20px;
+    border-top:1px solid var(--ink-line);
+    flex-shrink:0;
+    flex-wrap:wrap;
+  }
+
+  /* ---------- controls ---------- */
+  .field{margin-bottom:18px;}
+  .field-label{
+    display:block;
+    font-size:11.5px;
+    color:var(--ash);
+    margin-bottom:7px;
+    font-weight:500;
+  }
+  .field input[type=text], .field textarea{
+    width:100%;
+    background:var(--ink);
+    border:1px solid var(--ink-line);
+    color:var(--cream);
+    padding:9px 10px;
+    border-radius:5px;
+    font-size:13.5px;
+  }
+  .field textarea{
+    resize:vertical;
+    min-height:150px;
+    line-height:1.5;
+    font-family:"Fraunces", serif;
+    font-size:14.5px;
+  }
+  .field input[type=text]:focus, .field textarea:focus, select:focus{
+    outline:2px solid var(--gold-soft);
+    outline-offset:1px;
+  }
+  .field select{
+    width:100%;
+    background:var(--ink);
+    border:1px solid var(--ink-line);
+    color:var(--cream);
+    padding:9px 10px;
+    border-radius:5px;
+    font-size:13.5px;
+  }
+  .swatch-row{display:flex; gap:8px; align-items:center;}
+  .swatch-row input[type=color]{
+    width:38px; height:32px;
+    border:1px solid var(--ink-line);
+    border-radius:5px;
+    background:none;
+    padding:0;
+    cursor:pointer;
+  }
+  .swatch-hex{
+    font-size:12px;
+    color:var(--ash);
+    font-family:"Inter", monospace;
+  }
+  .divider{
+    border:none;
+    border-top:1px solid var(--ink-line);
+    margin:20px 0;
+  }
+  .section-label{
+    font-size:11px;
+    color:var(--ash-dim);
+    margin-bottom:14px;
+    letter-spacing:0.3px;
+  }
+
+  .btn{
+    background:transparent;
+    border:1px solid var(--ink-line);
+    color:var(--cream);
+    padding:9px 15px;
+    border-radius:5px;
+    font-size:13px;
+    cursor:pointer;
+  }
+  .btn:hover{border-color:var(--gold-soft); color:var(--gold-soft);}
+  .btn-primary{
+    background:var(--gold);
+    border-color:var(--gold);
+    color:var(--ink);
+    font-weight:500;
+  }
+  .btn-primary:hover{background:var(--gold-soft); border-color:var(--gold-soft); color:var(--ink);}
+  .btn-ghost{
+    border-color:transparent;
+    color:var(--ash);
+  }
+  .btn-ghost:hover{color:var(--rust); border-color:transparent;}
+  .btn:focus-visible, .tab:focus-visible, .tab-add:focus-visible{
+    outline:2px solid var(--gold-soft);
+    outline-offset:2px;
+  }
+
+  .file-row{display:flex; gap:8px; align-items:center; flex-wrap:wrap;}
+  .file-row input[type=file]{
+    font-size:12px;
+    color:var(--ash);
+    max-width:170px;
+  }
+
+  /* ---------- responsive ---------- */
+  @media (max-width: 780px){
+    .app{flex-direction:column;}
+    .sidebar{
+      width:100%;
+      border-right:none;
+      border-bottom:1px solid var(--ink-line);
+      max-height:42vh;
+    }
+    .canvas-wrap{padding:16px;}
+    #canvas{height:auto; width:100%;}
+    .topbar{padding:16px 18px 12px;}
+  }
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="wordmark">
+    <span class="word-main">Mills Books</span>
+    <span class="word-tag">bind your own stories</span>
+  </div>
+  <div class="status" id="statusText"></div>
+</header>
+
+<div class="app">
+  <aside class="sidebar">
+    <div id="controls"></div>
+    <!-- Google AdSense ad unit: replace data-ad-client and data-ad-slot with your own values -->
+    <ins class="adsbygoogle"
+         style="display:block; margin-top:20px;"
+         data-ad-client="ca-pub-XXXXXXXXXXXXXXXX"
+         data-ad-slot="XXXXXXXXXX"
+         data-ad-format="auto"
+         data-full-width-responsive="true"></ins>
+    <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+  </aside>
+  <section class="stage">
+    <div class="tabs" id="tabs"></div>
+    <div class="canvas-wrap">
+      <canvas id="canvas"></canvas>
+    </div>
+    <div class="stage-actions">
+      <button class="btn btn-primary" id="downloadOne">Download this as PNG</button>
+      <button class="btn" id="downloadAll">Download all pages</button>
+      <button class="btn btn-ghost" id="resetBook">Start over</button>
+    </div>
+  </section>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  var W = 900, H = 1350;
+  var FONTS = ["Fraunces", "Cormorant Garamond", "Bitter", "Special Elite"];
+
+  function defaultBook(){
+    return {
+      cover: {
+        title: "The Untitled Story",
+        author: "Jordan Mills",
+        bg: "#33473A",
+        textColor: "#EDE6D3",
+        font: "Fraunces",
+        image: null
+      },
+      pages: [
+        {
+          id: cryptoId(),
+          text: "Once upon a time, in a town no map remembered, there lived a story waiting to be told.\n\nThis is where it begins.",
+          bg: "#EDE6D3",
+          textColor: "#241F18",
+          font: "Fraunces",
+          image: null
+        }
+      ]
+    };
+  }
+
+  function cryptoId(){
+    return "p" + Math.random().toString(36).slice(2, 10);
+  }
+
+  var book = defaultBook();
+  var current = -1; // -1 = cover, else pages[index]
+  var imageCache = {};
+  var saveTimer = null;
+  var loading = true;
+
+  var canvas = document.getElementById("canvas");
+  var ctx = canvas.getContext("2d");
+  canvas.width = W;
+  canvas.height = H;
+
+  var statusEl = document.getElementById("statusText");
+  var tabsEl = document.getElementById("tabs");
+  var controlsEl = document.getElementById("controls");
+
+  function setStatus(text){
+    statusEl.textContent = text;
+  }
+
+  /* ---------------- persistence ---------------- */
+  async function loadBook(){
+    setStatus("Opening…");
+    try{
+      var res = await window.storage.get("book", false);
+      if(res && res.value){
+        var parsed = JSON.parse(res.value);
+        if(parsed && parsed.cover && Array.isArray(parsed.pages) && parsed.pages.length){
+          book = parsed;
+        }
+      }
+      setStatus("");
+    }catch(e){
+      setStatus("");
+    }
+    loading = false;
+  }
+
+  function scheduleSave(){
+    if(loading) return;
+    setStatus("Saving…");
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(async function(){
+      try{
+        var ok = await window.storage.set("book", JSON.stringify(book), false);
+        setStatus(ok ? "Saved" : "Couldn't save");
+      }catch(e){
+        setStatus("Couldn't save (images may be too large)");
+      }
+      setTimeout(function(){ if(statusEl.textContent !== "Saving…") setStatus(""); }, 2200);
+    }, 700);
+  }
+
+  /* ---------------- fonts ---------------- */
+  var fontsReadyPromise = null;
+  function ensureFonts(){
+    if(fontsReadyPromise) return fontsReadyPromise;
+    var specs = [];
+    FONTS.forEach(function(f){
+      specs.push(document.fonts.load('600 60px "' + f + '"'));
+      specs.push(document.fonts.load('italic 500 40px "' + f + '"'));
+      specs.push(document.fonts.load('400 30px "' + f + '"'));
+    });
+    fontsReadyPromise = Promise.all(specs).catch(function(){});
+    return fontsReadyPromise;
+  }
+
+  /* ---------------- image handling ---------------- */
+  function loadImage(dataUrl){
+    return new Promise(function(resolve, reject){
+      if(imageCache[dataUrl]){ resolve(imageCache[dataUrl]); return; }
+      var img = new Image();
+      img.onload = function(){ imageCache[dataUrl] = img; resolve(img); };
+      img.onerror = reject;
+      img.src = dataUrl;
+    });
+  }
+
+  function drawImageCover(ctx, img, x, y, w, h){
+    var ir = img.width / img.height;
+    var r = w / h;
+    var sx, sy, sw, sh;
+    if(ir > r){
+      sh = img.height;
+      sw = sh * r;
+      sx = (img.width - sw) / 2;
+      sy = 0;
+    } else {
+      sw = img.width;
+      sh = sw / r;
+      sx = 0;
+      sy = (img.height - sh) / 2;
+    }
+    ctx.drawImage(img, sx, sy, sw, sh, x, y, w, h);
+  }
+
+  /* ---------------- text wrapping ---------------- */
+  function wrapLines(ctx, text, maxWidth){
+    var paragraphs = String(text || "").split("\n");
+    var lines = [];
+    paragraphs.forEach(function(p){
+      if(p === ""){ lines.push(""); return; }
+      var words = p.split(" ");
+      var line = "";
+      words.forEach(function(word){
+        var test = line ? line + " " + word : word;
+        if(ctx.measureText(test).width > maxWidth && line){
+          lines.push(line);
+          line = word;
+        } else {
+          line = test;
+        }
+      });
+      lines.push(line);
+    });
+    return lines;
+  }
+
+  function fitTitleSize(ctx, text, font){
+    var size = 92;
+    while(size > 38){
+      ctx.font = '600 ' + size + 'px "' + font + '"';
+      var lines = wrapLines(ctx, text, W * 0.74);
+      if(lines.length <= 4) break;
+      size -= 4;
+    }
+    return size;
+  }
+
+  /* ---------------- rendering ---------------- */
+  async function render(){
+    var item = current === -1 ? book.cover : book.pages[current];
+    if(!item) return;
+    await ensureFonts();
+    if(item.image){
+      try{ await loadImage(item.image); }catch(e){}
+    }
+    ctx.clearRect(0, 0, W, H);
+    if(current === -1){
+      drawCover(item);
+    } else {
+      drawPage(item, current);
+    }
+  }
+
+  function drawCover(item){
+    if(item.image && imageCache[item.image]){
+      drawImageCover(ctx, imageCache[item.image], 0, 0, W, H);
+      ctx.fillStyle = "rgba(15,14,10,0.36)";
+      ctx.fillRect(0, 0, W, H);
+    } else {
+      ctx.fillStyle = item.bg;
+      ctx.fillRect(0, 0, W, H);
+      var g = ctx.createLinearGradient(0, 0, 0, H);
+      g.addColorStop(0, "rgba(255,255,255,0.07)");
+      g.addColorStop(0.5, "rgba(255,255,255,0)");
+      g.addColorStop(1, "rgba(0,0,0,0.16)");
+      ctx.fillStyle = g;
+      ctx.fillRect(0, 0, W, H);
+    }
+
+    ctx.strokeStyle = "rgba(255,255,255,0.16)";
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.moveTo(34, 0);
+    ctx.lineTo(34, H);
+    ctx.stroke();
+
+    ctx.textAlign = "center";
+    ctx.textBaseline = "alphabetic";
+    ctx.fillStyle = item.textColor;
+
+    var titleSize = fitTitleSize(ctx, item.title || "Untitled", item.font);
+    ctx.font = '600 ' + titleSize + 'px "' + item.font + '"';
+    var titleLines = wrapLines(ctx, item.title || "Untitled", W * 0.74);
+    var lineHeight = titleSize * 1.18;
+    var blockHeight = titleLines.length * lineHeight;
+    var startY = H * 0.46 - blockHeight / 2 + titleSize * 0.8;
+    titleLines.forEach(function(line, i){
+      ctx.fillText(line, W / 2, startY + i * lineHeight);
+    });
+
+    var ruleY = startY + (titleLines.length - 1) * lineHeight + 46;
+    ctx.strokeStyle = item.textColor;
+    ctx.globalAlpha = 0.55;
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(W / 2 - 60, ruleY);
+    ctx.lineTo(W / 2 + 60, ruleY);
+    ctx.stroke();
+    ctx.globalAlpha = 1;
+
+    if(item.author){
+      ctx.font = 'italic 500 32px "' + item.font + '"';
+      ctx.fillText(item.author, W / 2, ruleY + 56);
+    }
+  }
+
+  function drawPage(item, index){
+    ctx.fillStyle = item.bg;
+    ctx.fillRect(0, 0, W, H);
+    var g = ctx.createRadialGradient(W/2, H*0.42, H*0.25, W/2, H*0.42, H*0.75);
+    g.addColorStop(0, "rgba(255,255,255,0)");
+    g.addColorStop(1, "rgba(0,0,0,0.06)");
+    ctx.fillStyle = g;
+    ctx.fillRect(0, 0, W, H);
+
+    var marginX = 96;
+    var textTop = 110;
+
+    if(item.image && imageCache[item.image]){
+      var imgH = H * 0.4;
+      var imgY = 90;
+      drawImageCover(ctx, imageCache[item.image], marginX, imgY, W - marginX*2, imgH);
+      ctx.strokeStyle = "rgba(0,0,0,0.18)";
+      ctx.lineWidth = 2;
+      ctx.strokeRect(marginX, imgY, W - marginX*2, imgH);
+      textTop = imgY + imgH + 60;
+    }
+
+    ctx.textAlign = "left";
+    ctx.textBaseline = "alphabetic";
+    ctx.fillStyle = item.textColor;
+    var bodySize = 30;
+    ctx.font = '400 ' + bodySize + 'px "' + item.font + '"';
+    var maxWidth = W - marginX * 2;
+    var lines = wrapLines(ctx, item.text || "", maxWidth);
+    var lineHeight = bodySize * 1.55;
+    var y = textTop + bodySize;
+    var bottomLimit = H - 110;
+    for(var i = 0; i < lines.length; i++){
+      if(y > bottomLimit){
+        ctx.font = 'italic 400 20px "' + item.font + '"';
+        ctx.fillStyle = "rgba(0,0,0,0.4)";
+        ctx.fillText("…", marginX, y);
+        break;
+      }
+      ctx.fillText(lines[i], marginX, y);
+      y += lineHeight;
+    }
+
+    ctx.textAlign = "center";
+    ctx.font = 'italic 400 22px "' + item.font + '"';
+    ctx.fillStyle = item.textColor;
+    ctx.globalAlpha = 0.6;
+    ctx.fillText(String(index + 1), W / 2, H - 56);
+    ctx.globalAlpha = 1;
+  }
+
+  /* ---------------- tabs ---------------- */
+  function renderTabs(){
+    tabsEl.innerHTML = "";
+
+    var coverTab = document.createElement("button");
+    coverTab.className = "tab" + (current === -1 ? " active" : "");
+    coverTab.textContent = "Cover";
+    coverTab.addEventListener("click", function(){ selectItem(-1); });
+    tabsEl.appendChild(coverTab);
+
+    book.pages.forEach(function(page, i){
+      var tab = document.createElement("button");
+      tab.className = "tab" + (current === i ? " active" : "");
+      tab.type = "button";
+
+      var label = document.createElement("span");
+      label.textContent = "Page " + (i + 1);
+      tab.appendChild(label);
+
+      if(book.pages.length > 1){
+        var x = document.createElement("span");
+        x.className = "tab-x";
+        x.textContent = "\u00d7";
+        x.setAttribute("aria-label", "Delete page " + (i + 1));
+        x.addEventListener("click", function(ev){
+          ev.stopPropagation();
+          deletePage(i);
+        });
+        tab.appendChild(x);
+      }
+
+      tab.addEventListener("click", function(){ selectItem(i); });
+      tabsEl.appendChild(tab);
+    });
+
+    var addTab = document.createElement("button");
+    addTab.className = "tab-add";
+    addTab.type = "button";
+    addTab.textContent = "+";
+    addTab.setAttribute("aria-label", "Add page");
+    addTab.addEventListener("click", addPage);
+    tabsEl.appendChild(addTab);
+  }
+
+  function selectItem(i){
+    current = i;
+    renderTabs();
+    renderControls();
+    render();
+  }
+
+  function addPage(){
+    var last = book.pages[book.pages.length - 1];
+    book.pages.push({
+      id: cryptoId(),
+      text: "",
+      bg: last ? last.bg : "#EDE6D3",
+      textColor: last ? last.textColor : "#241F18",
+      font: last ? last.font : "Fraunces",
+      image: null
+    });
+    scheduleSave();
+    selectItem(book.pages.length - 1);
+  }
+
+  function deletePage(i){
+    if(book.pages.length <= 1) return;
+    book.pages.splice(i, 1);
+    if(current === i){
+      current = Math.max(-1, i - 1 >= 0 ? i - 1 : 0);
+      if(book.pages.length === 0) current = -1;
+    } else if(current > i){
+      current -= 1;
+    }
+    scheduleSave();
+    renderTabs();
+    renderControls();
+    render();
+  }
+
+  /* ---------------- controls panel ---------------- */
+  function fontOptions(selected){
+    return FONTS.map(function(f){
+      return '<option value="' + f + '"' + (f === selected ? " selected" : "") + '>' + f + "</option>";
+    }).join("");
+  }
+
+  function renderControls(){
+    var item = current === -1 ? book.cover : book.pages[current];
+    var isCover = current === -1;
+    var html = "";
+
+    html += '<div class="section-label">' + (isCover ? "Cover details" : "Page " + (current + 1)) + '</div>';
+
+    if(isCover){
+      html += '<div class="field"><label class="field-label" for="fTitle">Title</label>' +
+        '<input type="text" id="fTitle" value="' + escapeAttr(item.title) + '"></div>';
+      html += '<div class="field"><label class="field-label" for="fAuthor">Author</label>' +
+        '<input type="text" id="fAuthor" value="' + escapeAttr(item.author) + '"></div>';
+    } else {
+      html += '<div class="field"><label class="field-label" for="fText">Page text</label>' +
+        '<textarea id="fText">' + escapeHtml(item.text) + '</textarea></div>';
+    }
+
+    html += '<div class="field"><label class="field-label" for="fFont">Typeface</label>' +
+      '<select id="fFont">' + fontOptions(item.font) + '</select></div>';
+
+    html += '<div class="field"><label class="field-label">Background color</label>' +
+      '<div class="swatch-row"><input type="color" id="fBg" value="' + item.bg + '">' +
+      '<span class="swatch-hex" id="fBgHex">' + item.bg + '</span></div></div>';
+
+    html += '<div class="field"><label class="field-label">Text color</label>' +
+      '<div class="swatch-row"><input type="color" id="fText2" value="' + item.textColor + '">' +
+      '<span class="swatch-hex" id="fText2Hex">' + item.textColor + '</span></div></div>';
+
+    html += '<hr class="divider">';
+    html += '<div class="field"><label class="field-label">' + (isCover ? "Cover image" : "Illustration") + '</label>' +
+      '<div class="file-row"><input type="file" id="fImage" accept="image/*">' +
+      (item.image ? '<button class="btn btn-ghost" id="fImageClear" type="button">Remove</button>' : '') +
+      '</div></div>';
+
+    controlsEl.innerHTML = html;
+
+    document.getElementById("fFont").addEventListener("change", function(e){
+      item.font = e.target.value;
+      scheduleSave(); render();
+    });
+    document.getElementById("fBg").addEventListener("input", function(e){
+      item.bg = e.target.value;
+      document.getElementById("fBgHex").textContent = e.target.value;
+      scheduleSave(); render();
+    });
+    document.getElementById("fText2").addEventListener("input", function(e){
+      item.textColor = e.target.value;
+      document.getElementById("fText2Hex").textContent = e.target.value;
+      scheduleSave(); render();
+    });
+    document.getElementById("fImage").addEventListener("change", function(e){
+      var file = e.target.files[0];
+      if(!file) return;
+      var reader = new FileReader();
+      reader.onload = function(){
+        item.image = reader.result;
+        scheduleSave(); render(); renderControls();
+      };
+      reader.readAsDataURL(file);
+    });
+    var clearBtn = document.getElementById("fImageClear");
+    if(clearBtn){
+      clearBtn.addEventListener("click", function(){
+        item.image = null;
+        scheduleSave(); render(); renderControls();
+      });
+    }
+
+    if(isCover){
+      document.getElementById("fTitle").addEventListener("input", function(e){
+        item.title = e.target.value;
+        scheduleSave(); render();
+      });
+      document.getElementById("fAuthor").addEventListener("input", function(e){
+        item.author = e.target.value;
+        scheduleSave(); render();
+      });
+    } else {
+      document.getElementById("fText").addEventListener("input", function(e){
+        item.text = e.target.value;
+        scheduleSave(); render();
+      });
+    }
+  }
+
+  function escapeAttr(s){
+    return String(s || "").replace(/&/g,"&amp;").replace(/"/g,"&quot;").replace(/</g,"&lt;");
+  }
+  function escapeHtml(s){
+    return String(s || "").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+  }
+
+  /* ---------------- export ---------------- */
+  function downloadCanvasAs(name){
+    return new Promise(function(resolve){
+      canvas.toBlob(function(blob){
+        var url = URL.createObjectURL(blob);
+        var a = document.createElement("a");
+        a.href = url;
+        a.download = name;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        setTimeout(function(){ URL.revokeObjectURL(url); resolve(); }, 300);
+      }, "image/png");
+    });
+  }
+
+  document.getElementById("downloadOne").addEventListener("click", async function(){
+    var name = current === -1 ? "Mills Books - Cover.png" : "Mills Books - Page " + (current + 1) + ".png";
+    await downloadCanvasAs(name);
+  });
+
+  document.getElementById("downloadAll").addEventListener("click", async function(){
+    var prevCurrent = current;
+    current = -1;
+    await render();
+    await downloadCanvasAs("Mills Books - Cover.png");
+    for(var i = 0; i < book.pages.length; i++){
+      current = i;
+      await render();
+      await new Promise(function(r){ setTimeout(r, 250); });
+      await downloadCanvasAs("Mills Books - Page " + (i + 1) + ".png");
+    }
+    current = prevCurrent;
+    await render();
+  });
+
+  document.getElementById("resetBook").addEventListener("click", function(){
+    if(!confirm("Start a new book? This clears the current cover and pages.")) return;
+    book = defaultBook();
+    current = -1;
+    scheduleSave();
+    renderTabs();
+    renderControls();
+    render();
+  });
+
+  /* ---------------- init ---------------- */
+  async function init(){
+    await loadBook();
+    renderTabs();
+    renderControls();
+    await render();
+  }
+
+  init();
+})();
+</script>
+</body>
+</html>
